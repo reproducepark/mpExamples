@@ -96,7 +96,7 @@ async function predictLoop() {
     if (!top || p.probability > top.probability) top = p;
   }
   if (top) {
-    maybeSendTopClass(`${top.className}`);
+    maybeSendTopClass(top);
   }
 
   window.requestAnimationFrame(predictLoop);
@@ -193,16 +193,18 @@ async function sendSerialLine(line) {
     const encoded = new TextEncoder().encode(line + '\r\n');
     await writer.write(encoded);
     lastSentElement.textContent = `마지막 전송: ${line}`;
+    console.log('[Serial TX]', line);
   } catch (err) {
     console.error('Write error:', err);
   }
 }
 
-function maybeSendTopClass(name) {
-  if (!name) return;
-  if (lastTopClass === name) return; // avoid redundant sends
-  lastTopClass = name;
-  sendSerialLine(name);
+function maybeSendTopClass(top) {
+  if (!top) return;
+  const line = `${top.className},${top.probability.toFixed(2)}`;
+  if (lastTopClass === line) return; // avoid redundant sends
+  lastTopClass = line;
+  sendSerialLine(line);
 }
 
 async function disconnectSerial() {
